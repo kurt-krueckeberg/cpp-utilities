@@ -2,65 +2,73 @@
 #define token_iterator_h
 
 #include <string>
+#include <string_view>
 
 template<char TOKEN='|'>
-class token_iterator : public std::iterator<std::input_iterator_tag, std::string> {
+class token_iterator : public std::iterator<std::input_iterator_tag, std::pair<const char *, int>> { 
     
   bool ok;
   
-  const std::string *const str_ptr; 
+  const std::string *const pline; 
     
   int  pos;
   int  prev_pos;
 
   const char token;
-  
-  void fetch_field(bool initial=false) 
+
+  std::string_view value;
+
+  void fetch_field(bool initial=false) noexcept 
   {
-     ok = (str_ptr && pos != str_ptr->size()) ? true : false;
+     ok = (pline && pos != pline->size()) ? true : false;
 
      if (!ok) prev_pos = pos; // This ensures *operator() always returns an empty string if user 
                               // calls operator++() once iteration is complete.
 
      if (ok) {
 
-         if (!initial && pos != str_ptr->size()) ++pos;  // skip over token or advance to start 
+         if (!initial && pos != pline->size()) ++pos;  // skip over token or advance to start 
 
          prev_pos = pos;
 
-         pos = str_ptr->find(token, pos);
+         pos = pline->find(token, pos);
 
          if (pos == std::string::npos) {
              
-             pos = str_ptr->size();
+             pos = pline->size();
          }
      } 
+     
+     const char *current_start = pline->c_str() + prev_pos; // current string_view start
+     unsigned current_length = (pos == std::string::npos) ? 0 : pos - prev_pos; // current string_view length
+
+     value = std::string_view{current_start, current_length}; 
   }
 
   public:
 
-   token_iterator() : token{TOKEN}, ok{false}, str_ptr{nullptr}
+   token_iterator() : token{TOKEN}, ok{false}, pline{nullptr}
    {
        prev_pos = pos = 0;
    } 
 
-   explicit token_iterator(const std::string& in_line) : str_ptr{&in_line}, token{TOKEN}, ok{true}
+   explicit token_iterator(const std::string& in_line) : pline{&in_line}, token{TOKEN}, ok{true}
    {
       prev_pos = pos = 0;
       fetch_field(true);  
    }
 
-   token_iterator(const token_iterator& lhs) : str_ptr{lhs.str_ptr}, token{lhs.token}, pos{lhs.pos}, prev_pos{lhs.pos} {}
+   token_iterator(const token_iterator& lhs) = default; 
 
   ~token_iterator() {}
   
-   token_iterator& operator++() 
+   token_iterator& operator++() noexcept
    {
       fetch_field();
       return *this;
    }
 
-   token_iterator operator++(int) 
+   token_iterator operator++(int) noexcept
    {
       token_iterator tmp{*this};
 
@@ -68,31 +76,29 @@ class token_iterator : public std::iterator<std::input_iterator_tag, std::string
 
       return tmp;
    }
-   
-   const std::string operator*() const
+
+   const std::string_view operator*() noexcept
    {
-     auto length = (pos == std::string::npos) ? 0 : pos - prev_pos;
-   
-     return str_ptr->substr(prev_pos, length);
+     return value; 
    } 
 
-   const std::string *operator->()
+   const std::string_view *operator->() noexcept
    {
-     return &operator*();
+     return &value;
    }
- 
-   bool equal(const token_iterator& rhs) const
+
+   bool equal(const token_iterator& rhs) const noexcept
    {
-     return (ok == rhs.ok) && (!ok || (str_ptr == rhs.str_ptr && pos == rhs.pos && prev_pos == rhs.prev_pos));
+     return (ok == rhs.ok) && (!ok || (pline == rhs.pline && pos == rhs.pos && prev_pos == rhs.prev_pos));
    }
 };
 
-template<char T> inline bool operator!=(const token_iterator<T>& lhs, const token_iterator<T>& rhs)
+template<char T> inline bool operator!=(const token_iterator<T>& lhs, const token_iterator<T>& rhs) noexcept
 {
   return !(lhs.equal(rhs));
 }
 
-template<char T> inline bool operator==(const token_iterator<T>& lhs, const token_iterator<T>& rhs)
+template<char T> inline bool operator==(const token_iterator<T>& lhs, const token_iterator<T>& rhs) noexcept
 {
   return lhs.equal(rhs);
 }
