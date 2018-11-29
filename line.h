@@ -3,7 +3,8 @@
 #include <string>
 #include <memory>
 /*
-This is an example of a wrapper class that allows a built-in type
+This is an example of a wrapper class that allows a built-in type,  
+here std::string,
 to work with std::istream_iterator. it's conversion operators allow
 it to be converted back to the original type as an L value or an R value.
 */
