@@ -4,9 +4,9 @@
 #include <string>
 #include <string_view>
 
-template<char TOKEN='|'>
-class token_iterator : public std::iterator<std::input_iterator_tag, std::pair<const char *, int>> {
+template<char TOKEN='|'> class token_iterator {
 
+    using iterator_category = std::input_iterator_tag;
     using value_type = std::pair<const char *, int>;
     using reference = value_type&; 
     
