@@ -18,13 +18,16 @@
    *
    *  Tip:  Use unordered_map_inserter(C) function to create these iterators
   */
-template<typename _Container> class unordered_map_insert_iterator : public std::iterator<std::output_iterator_tag, void, void, void, void> {
+template<typename _Container> class unordered_map_insert_iterator  {
+
     protected:
       _Container* container;
 
     public:
       /// A nested typedef for the type of whatever container you used.
       using container_type = _Container;
+      using iterator_category = std::output_iterator_tag;
+      using value_type = void; 
 
       /// The only way to create this %iterator is with a container.
       explicit
