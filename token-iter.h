@@ -19,13 +19,13 @@ template<char TOKEN='|'> class token_iterator {
 
   const char token;
 
-  std::string_view value;
+  std::string_view value; // The current field. Set by fetch_field
 
-  void fetch_field(bool initial=false) noexcept 
+  std::string_view fetch_field(bool initial=false) noexcept 
   {
      ok = (pline && pos != pline->size()) ? true : false;
 
-     if (!ok) prev_pos = pos; // This ensures *operator() always returns an empty string if user 
+     if (!ok) prev_pos = pos; // This statement ensures *operator() always returns an empty string if the user
                               // calls operator++() once iteration is complete.
 
      if (ok) {
@@ -45,7 +45,7 @@ template<char TOKEN='|'> class token_iterator {
      const char *current_start = pline->c_str() + prev_pos; // current string_view start
      unsigned current_length = (pos == std::string::npos) ? 0 : pos - prev_pos; // current string_view length
 
-     value = std::string_view{current_start, current_length}; 
+     return {current_start, current_length}; 
   }
 
   public:
@@ -58,7 +58,7 @@ template<char TOKEN='|'> class token_iterator {
    explicit token_iterator(const std::string& in_line) : pline{&in_line}, token{TOKEN}, ok{true}
    {
       prev_pos = pos = 0;
-      fetch_field(true);  
+      value = fetch_field(true);  
    }
 
    token_iterator(const token_iterator& lhs) = default; 
@@ -67,7 +67,7 @@ template<char TOKEN='|'> class token_iterator {
   
    token_iterator& operator++() noexcept
    {
-      fetch_field();
+      value = fetch_field();
       return *this;
    }
 
@@ -75,7 +75,7 @@ template<char TOKEN='|'> class token_iterator {
    {
       token_iterator tmp{*this};
 
-      fetch_field();
+      value = fetch_field();
 
       return tmp;
    }
