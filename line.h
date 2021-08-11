@@ -2,23 +2,28 @@
 #define line_h
 #include <string>
 #include <memory>
-/*
-This is an example of a wrapper class that allows a built-in type,  
-here std::string,
-to be used with std::istream_iterator. it's conversion operators allow
-it to be converted back to the original type as an L value or an R value.
-*/
 
+/*
+This std::string wrapper class that allows std::string to be used with std::istream_iterator?
+*/
 struct Line {
 
     std::string lineData;
-   
+    
+   /*
+    * This conversion operator converts Line to an lvalue of type 'const std::string&', enabling it to be used with algorithms
+    * that take an lvalue like 'std::copy()'.
+    */
+       
     operator const std::string&() const // for use with std::copy, etc.
     {
        return lineData;
     }
-    
-    operator std::string&&() // for use with std::move() algorithm
+   /*
+    * This conversion operator converts Line to the rvalue 'std::string&&', enabling Line to be seemless used with algorithms taking
+    * an rvalue like std::move().
+    */
+    operator std::string&&() 
     {
        return std::move(lineData);
     }
